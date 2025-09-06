@@ -41,6 +41,8 @@ export class MemStorage implements IStorage {
       ...insertGeneration,
       id,
       createdAt: new Date(),
+      metadata: insertGeneration.metadata || null,
+      userId: insertGeneration.userId || null,
     };
     this.contentGenerations.set(id, generation);
     return generation;

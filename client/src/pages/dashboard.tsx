@@ -67,7 +67,15 @@ export default function Dashboard() {
                 </p>
                 <button 
                   className="btn-gold w-full py-3 rounded-xl font-semibold"
-                  onClick={() => window.location.href = '/#text-generator'}
+                  onClick={() => {
+                    window.location.href = '/';
+                    setTimeout(() => {
+                      const element = document.querySelector('[data-testid="text-generator-title"]');
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }, 100);
+                  }}
                   data-testid="quick-text-button"
                 >
                   <i className="fas fa-pen mr-2"></i>Start Writing
@@ -83,7 +91,15 @@ export default function Dashboard() {
                 </p>
                 <button 
                   className="btn-gold w-full py-3 rounded-xl font-semibold"
-                  onClick={() => window.location.href = '/#image-generator'}
+                  onClick={() => {
+                    window.location.href = '/';
+                    setTimeout(() => {
+                      const element = document.querySelector('[data-testid="image-generator-title"]');
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }, 100);
+                  }}
                   data-testid="quick-image-button"
                 >
                   <i className="fas fa-image mr-2"></i>Create Image

@@ -55,7 +55,11 @@ export async function generateImage(request: ImageGenerationRequest): Promise<st
       quality: quality as "standard" | "hd",
     });
 
-    return response.data[0].url || "";
+    if (!response.data || !response.data[0] || !response.data[0].url) {
+      throw new Error("No image URL returned from OpenAI");
+    }
+
+    return response.data[0].url;
   } catch (error) {
     console.error("Image generation error:", error);
     throw new Error(`Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`);
