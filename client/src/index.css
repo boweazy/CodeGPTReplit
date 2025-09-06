@@ -51,9 +51,9 @@
 @layer components {
   .glass-panel {
     background: transparent;
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 1.5rem;
     position: relative;
     overflow: hidden;
@@ -76,10 +76,10 @@
       hsl(45, 100%, 70%) 300deg,
       hsl(45, 100%, 70%) 360deg
     );
-    animation: rotate-border 8s linear infinite;
+    animation: rotate-border 10s linear infinite;
     z-index: -1;
-    filter: blur(15px);
-    opacity: 0.6;
+    filter: blur(20px);
+    opacity: 0.4;
   }
 
   .glass-panel::after {

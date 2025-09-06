@@ -31,15 +31,15 @@ export default function SparklingBorder({ children }: SparklingBorderProps) {
         star.style.pointerEvents = 'none';
         star.style.zIndex = '10';
         
-        const size = Math.random() * 3 + 1; // Star size between 1px and 4px
+        const size = Math.random() * 2 + 1; // Star size between 1px and 3px
         star.style.width = `${size}px`;
         star.style.height = `${size}px`;
-        star.style.boxShadow = `0 0 ${size * 2}px #ffd700`;
+        star.style.boxShadow = `0 0 ${size * 3}px #ffd700`;
 
         // Position stars around the border perimeter
         const angle = (i / numStars) * Math.PI * 2;
-        const radiusX = centerX + (Math.random() * 20 - 10); // Add some randomness
-        const radiusY = centerY + (Math.random() * 20 - 10);
+        const radiusX = centerX + (Math.random() * 30 - 15); // More spread
+        const radiusY = centerY + (Math.random() * 30 - 15);
         
         const x = centerX + radiusX * Math.cos(angle) - size / 2;
         const y = centerY + radiusY * Math.sin(angle) - size / 2;
