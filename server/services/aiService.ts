@@ -32,8 +32,7 @@ export async function generateText(request: TextGenerationRequest): Promise<stri
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
       ],
-      max_tokens: length === "short" ? 200 : length === "long" ? 800 : 400,
-      temperature: 0.7,
+      max_completion_tokens: length === "short" ? 200 : length === "long" ? 800 : 400,
     });
 
     return response.choices[0].message.content || "Failed to generate content";
