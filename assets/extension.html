@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharpSeparateCompiler Extension</title>
+    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="extension-container">
+        <!-- Extension content will be dynamically loaded here -->
+    </div>
+
+    <!-- Extension Toolbar -->
+    <div id="extension-toolbar" style="position: fixed; top: 10px; right: 10px; z-index: 10000;">
+        <div class="toolbar-buttons">
+            <button id="toggle-compiler" class="toolbar-btn" title="Toggle C# Compiler">
+                <i class="fas fa-hammer"></i>
+            </button>
+            <button id="toggle-separator" class="toolbar-btn" title="Toggle Code Separator">
+                <i class="fas fa-layer-group"></i>
+            </button>
+            <button id="extension-settings" class="toolbar-btn" title="Extension Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> Extension Settings</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="auto-compile" />
+                        Auto-compile on file save
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="auto-format" />
+                        Auto-format on file save
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="show-warnings" />
+                        Show compilation warnings
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>Separation Depth:</label>
+                    <select id="separation-depth">
+                        <option value="1">Conservative</option>
+                        <option value="2">Moderate</option>
+                        <option value="3" selected>Aggressive</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Compiler Version:</label>
+                    <select id="compiler-version">
+                        <option value="latest" selected>Latest (.NET 8)</option>
+                        <option value="net7.0">.NET 7.0</option>
+                        <option value="net6.0">.NET 6.0</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings" class="btn-primary">Save Settings</button>
+                <button id="reset-settings" class="btn-secondary">Reset to Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div id="quick-actions" class="quick-panel" style="display: none;">
+        <div class="panel-header">
+            <h4><i class="fas fa-bolt"></i> Quick Actions</h4>
+            <button class="close-panel">&times;</button>
+        </div>
+        <div class="panel-content">
+            <button class="quick-action-btn" data-action="compile">
+                <i class="fas fa-hammer"></i>
+                <span>Quick Compile</span>
+            </button>
+            <button class="quick-action-btn" data-action="separate">
+                <i class="fas fa-layer-group"></i>
+                <span>Separate Code</span>
+            </button>
+            <button class="quick-action-btn" data-action="format">
+                <i class="fas fa-magic"></i>
+                <span>Format Code</span>
+            </button>
+            <button class="quick-action-btn" data-action="analyze">
+                <i class="fas fa-chart-line"></i>
+                <span>Analyze File</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notifications" class="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="src/main.js"></script>
+    <script>
+        // Extension initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeExtension();
+        });
+
+        function initializeExtension() {
+            // Setup toolbar events
+            document.getElementById('toggle-compiler').addEventListener('click', () => {
+                toggleTool('compiler');
+            });
+
+            document.getElementById('toggle-separator').addEventListener('click', () => {
+                toggleTool('separator');
+            });
+
+            document.getElementById('extension-settings').addEventListener('click', () => {
+                showSettings();
+            });
+
+            // Setup settings modal
+            document.querySelector('.close-modal').addEventListener('click', hideSettings);
+            document.getElementById('save-settings').addEventListener('click', saveSettings);
+            document.getElementById('reset-settings').addEventListener('click', resetSettings);
+
+            // Setup quick actions
+            document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const action = e.currentTarget.dataset.action;
+                    executeQuickAction(action);
+                });
+            });
+
+            // Load saved settings
+            loadSettings();
+
+            // Show welcome notification
+            showNotification('🚀 SharpSeparateCompiler Extension Loaded!', 'success');
+        }
+
+        function toggleTool(toolName) {
+            const container = document.getElementById('extension-container');
+            container.innerHTML = ''; // Clear current content
+
+            if (toolName === 'compiler') {
+                // Load compiler tool
+                import('./src/tools/compiler.js').then(module => {
+                    const tool = module.default();
+                    const ui = tool.setupUI();
+                    container.appendChild(ui);
+                    tool.init();
+                });
+            } else if (toolName === 'separator') {
+                // Load separator tool
+                import('./src/tools/separator.js').then(module => {
+                    const tool = module.default();
+                    const ui = tool.setupUI();
+                    container.appendChild(ui);
+                    tool.init();
+                });
+            }
+        }
+
+        function showSettings() {
+            document.getElementById('settings-modal').style.display = 'block';
+        }
+
+        function hideSettings() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        function saveSettings() {
+            const settings = {
+                autoCompile: document.getElementById('auto-compile').checked,
+                autoFormat: document.getElementById('auto-format').checked,
+                showWarnings: document.getElementById('show-warnings').checked,
+                separationDepth: document.getElementById('separation-depth').value,
+                compilerVersion: document.getElementById('compiler-version').value
+            };
+
+            localStorage.setItem('sharp-compiler-prefs', JSON.stringify(settings));
+            showNotification('✅ Settings saved', 'success');
+            hideSettings();
+        }
+
+        function resetSettings() {
+            localStorage.removeItem('sharp-compiler-prefs');
+            loadSettings();
+            showNotification('🔄 Settings reset to defaults', 'info');
+        }
+
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('sharp-compiler-prefs') || '{}');
+            
+            document.getElementById('auto-compile').checked = settings.autoCompile || false;
+            document.getElementById('auto-format').checked = settings.autoFormat || false;
+            document.getElementById('show-warnings').checked = settings.showWarnings !== false;
+            document.getElementById('separation-depth').value = settings.separationDepth || '3';
+            document.getElementById('compiler-version').value = settings.compilerVersion || 'latest';
+        }
+
+        function executeQuickAction(action) {
+            switch(action) {
+                case 'compile':
+                    import('./src/commands/compile.js').then(module => {
+                        module.default.execute([]);
+                    });
+                    break;
+                case 'separate':
+                    import('./src/commands/separate.js').then(module => {
+                        module.default.execute([]);
+                    });
+                    break;
+                case 'format':
+                    showNotification('✨ Formatting code...', 'info');
+                    // Format action implementation
+                    break;
+                case 'analyze':
+                    showNotification('📊 Analyzing file...', 'info');
+                    // Analysis action implementation
+                    break;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button class="notification-close">&times;</button>
+            `;
+
+            container.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+
+            // Manual close
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                notification.remove();
+            });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Shift+C - Quick Compile
+            if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+                e.preventDefault();
+                executeQuickAction('compile');
+            }
+            
+            // Ctrl+Shift+S - Quick Separate
+            if (e.ctrlKey && e.shiftKey && e.code === 'KeyS') {
+                e.preventDefault();
+                executeQuickAction('separate');
+            }
+        });
+    </script>
+
+    <style>
+        /* Additional styles for extension UI */
+        #extension-toolbar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toolbar-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toolbar-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .setting-group {
+            margin-bottom: 16px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .quick-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            width: 250px;
+            z-index: 10000;
+        }
+
+        .panel-header {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h4 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close-panel {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .panel-content {
+            padding: 16px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .quick-action-btn {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .quick-action-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10002;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 300px;
+        }
+
+        .notification {
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .notification-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .notification-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</body>
+</html>
