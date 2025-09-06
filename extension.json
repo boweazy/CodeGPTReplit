@@ -1,0 +1,53 @@
+{
+  "name": "SharpSeparateCompiler",
+  "version": "1.0.0",
+  "description": "A powerful extension for separating and compiling C# code with advanced features",
+  "author": "Smart-F-Syst",
+  "main": "src/main.js",
+  "tools": [
+    {
+      "name": "compiler",
+      "displayName": "C# Compiler",
+      "description": "Compile and manage C# projects with separation of concerns",
+      "handler": "src/tools/compiler.js",
+      "icon": "fas fa-code"
+    },
+    {
+      "name": "separator",
+      "displayName": "Code Separator", 
+      "description": "Analyze and separate code into logical components",
+      "handler": "src/tools/separator.js",
+      "icon": "fas fa-layer-group"
+    }
+  ],
+  "commands": [
+    {
+      "name": "compile-sharp",
+      "displayName": "Compile C# Project",
+      "description": "Quickly compile the current C# project",
+      "handler": "src/commands/compile.js",
+      "keybinding": "Ctrl+Shift+C"
+    },
+    {
+      "name": "separate-code",
+      "displayName": "Separate Code Components",
+      "description": "Analyze and separate code into components",
+      "handler": "src/commands/separate.js",
+      "keybinding": "Ctrl+Shift+S"
+    }
+  ],
+  "fileHandlers": [
+    {
+      "extensions": [".cs"],
+      "displayName": "C# File Handler",
+      "description": "Enhanced C# file editor with compilation features",
+      "handler": "src/fileHandlers/csharp.js",
+      "icon": "fas fa-file-code"
+    }
+  ],
+  "permissions": [
+    "read:filesystem",
+    "write:filesystem",
+    "exec:terminal"
+  ]
+}
